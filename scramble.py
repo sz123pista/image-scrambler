@@ -4,56 +4,39 @@ import hashlib
 from PIL import Image
 
 
-def hash_function(last_hash, in_data):
-	return int(hashlib.md5(str(last_hash) + str(in_data)).hexdigest(), 16)
-	#return in_data * 1001230123231230123312L % 21201231233L
+def point_mapping(hash_fun, image_len, hash_init_val):
+	used_points = list() #TODO: improve this!
+	last_hash = hash_init_val
+	for i in range(image_len):
+		act_hash = hash_fun(last_hash, i)
+		last_hash = act_hash
+		map_point = act_hash % image_len
+		while map_point in used_points:
+			map_point = (map_point + 1) % image_len
+		used_points.append(map_point)
+		yield map_point
 
+def hash_point(last_hash, in_point):
+	return int(hashlib.md5(str(last_hash) + str(in_point)).hexdigest(), 16)
+	#return in_point * 1001230123231230123312L % 21201231233L
 
 def scramble(image_in):
-	in_list = list(image_in)
-	in_list_len = len(in_list)
-	tmp = dict()
-	print len(in_list)
-	last_hash=0
-	for i in range(0, in_list_len):
-		#find where to put i-th pixel
-		act_hash = hash_function(last_hash, i)
-		j = act_hash % in_list_len
-		last_hash = act_hash
-		if i % 10000 == 0:
-			print i
-		while(tmp.get(j) is not None):
-			j = (j + 1) % in_list_len
-		tmp[j] = in_list[i]
-	out_list = list()
-	for i in range(0, in_list_len):
-		out_list.append(tmp[i])
-	return out_list
-
+	in_list_len = len(image_in)
+	image_out = list(image_in)
+	i = 0
+	for m in point_mapping(hash_point, in_list_len, 0):
+		image_out[m] = image_in[i]
+		i += 1
+	return image_out
 
 def descramble(image_in):
-	in_list = list(image_in)
-	in_list_len = len(in_list)
-	tmp = dict()
-	out_list = dict()
-	print len(in_list)
-	last_hash=0
-	for i in range(0, in_list_len):
-		#find where to put i-th pixel
-		act_hash = hash_function(last_hash, i)
-		j = act_hash % in_list_len
-		last_hash = act_hash
-		if i % 10000 == 0:
-			print i
-		while(tmp.get(j) is not None):
-			j = (j + 1) % in_list_len
-		tmp[j] = 1
-		out_list[i] = in_list[j]
-	out_list2 = list()
-	for i in range(0, in_list_len):
-		out_list2.append(out_list[i])
-	return out_list2
-
+	in_list_len = len(image_in)
+	image_out = list(image_in)
+	i = 0
+	for m in point_mapping(hash_point, in_list_len, 0):
+		image_out[i] = image_in[m]
+		i += 1
+	return image_out
 
 def main():
 	print "hello"
@@ -64,7 +47,7 @@ def main():
 	im3 = Image.new(im.mode, im.size)
 	image_data = im.getdata()
 
-	image_data_2 = scramble(list(image_data))
+	image_data_2 = scramble(list(image_data)[:1000])
 
 	im2.putdata(image_data_2)
 	im2.show()
