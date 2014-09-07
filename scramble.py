@@ -20,6 +20,7 @@ def point_mapping(hash_fun, image_len, hash_init_val):
 def hash_point(last_hash, in_point):
 	return int(hashlib.md5(str(last_hash) + str(in_point)).hexdigest(), 16)
 	#return in_point * 1001230123231230123312L % 21201231233L
+	#return in_point * 200
 
 def scramble(image_in, hash_init_val, descramble=False):
 	in_len = len(image_in)
@@ -34,25 +35,23 @@ def scramble(image_in, hash_init_val, descramble=False):
 	return image_out
 
 def main():
-	print "hello"
-	im = Image.open(sys.argv[1], "r")
-	print im.size
-	#im.show()
-	im2 = Image.new(im.mode, im.size)
-	im3 = Image.new(im.mode, im.size)
+	if (2 != len(sys.argv)):
+		print "Usage: " + sys.argv[0] + " image"
+		exit(0)
+	im_filename = sys.argv[1]
+	im = Image.open(im_filename, "r")
 	image_data = im.getdata()
 
 	image_data_2 = scramble(list(image_data), 0)
-
+	im2 = Image.new(im.mode, im.size)
 	im2.putdata(image_data_2)
 	im2.show()
 
 	image_data_3 = scramble(list(image_data_2), 0, True)
+	im3 = Image.new(im.mode, im.size)
 	im3.putdata(image_data_3)
 	im3.show()
 	
-
-
 if __name__=="__main__":
 	main()
 
